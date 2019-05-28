@@ -1,2 +1,3 @@
-let NamedTypes = https://raw.githubusercontent.com/plow-technologies/presentation-dhall-config-language/master/NamedTypes.dhall
-in 3
+let Plant = ./Plant.dhall
+in {common="Whee",botanical="whoo",zone=4}: Plant
+
