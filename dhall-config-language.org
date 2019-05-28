@@ -1,0 +1,230 @@
+#+OPTIONS: toc:nil        no default TOC at all
+#+OPTIONS: num:nil
+
+*  An Introduction to Dhall
+Dhall is a typed language written to 
+be a replacement for Yaml.  
+
+It features
++ lambdas
++ let bindings
++ modules
++ Sum and Product types
+
+Which make it very appealing to those who like functional programming.
+
+* What is a Config Lanuage?
+What separates a config language from other languages 
+has to do with the domains they are applied.  
+** Uses
+*** Represent an initial state of a system.
+
+#+BEGIN_SRC dhall
+{ port=80
+, numberOfThreads=4
+, logLevel="High"}
+
+
+#+END_SRC
+*** Represent data in a textual way that will be compiled into some other form
+*** Share the state of a system in a way the power of every text tool in the world can be used
+** Why not ANY language?
+So one thing that does tend to happen in complicated projects is you start seeing more 
+and more config moved to full power programming languages.  
+bash and python being some of the most popular.
+
+Full power languages offer great support for data organization and abstraction.
+However, that power is a double edged sword. 
+
+Looping, internal state and arbitrary effects are common things you can do in a 
+traditional language.  It is not exactly a built in feature that you can easily 
+read a page of a program in many languages and understand what is happening.
+
+** Why any language at all
+So this seems a bit tounge in cheek but suppose we just use like space separated configs
+assembled arbitrarily? We could just say every option is just listed in order.
+This basically is how command args work in c or bash right?
+A list of space separated values with no real structure.  
+
+*** Consistent data format.
+How will you represent a list =[1,2,3,4]= , =(1,2,3,4)=, ={1,2,3,4}=, =(1,(2,(3,4)))= ?
+How to group data together? 
+
+These kind of decisions are important in order for data to be shared.  
+Some sort of data format must be had!
+
+*** Learning from the past
+Configuration languages, properly designed, take lessons from the past and make things better.
+
+** Essential Features of a Config Language
+
+*** Organize Data (Records)
+*** Be readable (Text Based)
+A configuration language needs to convey information to humans and computers alike.
+Being text based and having comments are two obviously important parts of doing both of
+these things well
+*** Be Understandable (Easy Syntax)
+*** Be Terse (Less Syntax)
+*** Be checkable
+*** Our checklist
++ [ ] Records
++ [ ] Lists
++ [ ] Schema
++ [ ] Comments
++ [ ] delimiters
++ [ ] Binding
++ [ ] Termination
+
+
+* A history of popular config formats
+** S-Expressions
+Lisp's =HomoIconic= notation.  
+
+#+BEGIN_SRC elisp
+(plant 
+   (commonname "Blue Gentian")
+   (botanicalname "Gentiana")
+   (zone 4)
+   (light "Sun or Shade")
+   (price "8.56")
+   (availability 050299))
+#+END_SRC
+
+*** Advantages
+**** Durability
+One of the oldest ways of representing data for a machine (1955!)
+**** Simplicity
+At it's core all you need are
++ A few primitives like String and Number
++ a token to name each symbolic expression
++ lots of parens (love your parens)
+**** Binding 
+You can bind expressions to variables.  This is a powerful
+idea that most of the rest of the languages I am going to 
+talk about don't have.
+
+*** Disadvantages
+Parens, parens everywhere.
++ Spot the error!
+=(div some (p (b white)) rabbit)=
++ ambiguous replacement of parens
+=(a (b (d) (c))= 
+Should that be =(a (b (d) (c)))=  or =(a (b (d)) (c))= 
+Who knows!
++ A complete programming language if used with LISP
++ Relatively obscure
+*** Checklist 
++ [x] Records
++ [x] Lists
++ [x] Schema
++ [x] Comments
++ [x] Binding
++ [ ] delimiters
++ [ ] Termination
+
+** XML
+Lots of thought went into the design of XML and
+it shows!
+#+BEGIN_SRC html
+<PLANT>
+  <COMMON>Blue Gentian</COMMON>
+  <BOTANICAL>Gentiana</BOTANICAL>
+  <ZONE>4</ZONE> 
+<LIGHT>Sun or Shade</LIGHT>
+<PRICE>$8.56</PRICE>
+<AVAILABILITY>050299</AVAILABILITY>
+</PLANT>
+#+END_SRC 
+*** Advantages 
++ Ubiquitous
++ Readable for syntax and meaning
++ Redundancy is really nice for error tracking
+#+BEGIN_SRC html
+<PLANT>
+  <COMMON>Blue Gentian</COMMON>
+  <BOTANICAL>Gentiana</BOTANICAL>
+  <ZONE>4</ZONE> 
+<LIGHT>Sun or Shade</LIGHT>
+<PRICE>$8.56</PRICE>
+<AVAILABILITY>050299</AVAILABILITY>
+</PLANT>
+#+END_SRC 
++ [[http://xahlee.info/comp/xml_nested_syntax_vs_lisp.html][XML vs S Expressions]]
+
+*** Disadvantages
++ Lots of ways of doing things 
+
+#+BEGIN_SRC html
+<PLANT zone=4 availability="050299">
+  <COMMON>Blue Gentian</COMMON>
+  <BOTANICAL>Gentiana</BOTANICAL>
+<LIGHT>Sun or Shade</LIGHT>
+<PRICE>$8.56</PRICE>
+</PLANT>
+#+END_SRC 
++ A bit wordy
+
+*** Checklist
++ [ ] Records
++ [ ] Lists
++ [x] Schema
++ [x] Comments
++ [x] Binding
++ [x] delimiters
++ [x ] Termination
+** JSON 
+
+#+BEGIN_SRC json
+{"plant":{"common":"Blue Gentian"
+         ,"botanical":"Gentiana"
+         ,"zone":4
+         ,"light":"Sun or Shade"
+         ,"price":"$8.56"
+       }
+}
+#+END_SRC
+*** Advantages
++ Even more ubiquitous than XML!
++ Clean structure and syntax
++ Readable by every browser in the world.
+
+*** Disadvantages
++ No support for comments
++ No variable binding 
++ No baked in way of talking about schema
+*** Checklists
++ [x] Records
++ [x] Lists
++ [ ] Schema
++ [ ] Comments
++ [ ] Binding
++ [x] delimiters
++ [x] Termination
+** YAML
+#+BEGIN_SRC yaml
+plant:
+  common: "Blue Gentian"
+  botainical: 
+#+END_SRC
+*** Advantages
++ Easy to understand how to write quickly
++ Comments are back!
+
+*** Disadvantages    
++ Notoriously insecure
++ Hard to edit because no delimeters
++ Hard to partition because no separation
+*** Checklists
+
+** Other
+Serialization formats aren't strictly config languages, but I
+bet every text based one of them has been tried by someone!  
+I know like 10 of them have been tried by me. 
+
+[[https://en.wikipedia.org/wiki/Comparison_of_data-serialization_formats][Wiki list of serialization formats]]
+
+* Why do we need ANOTHER language   
+** Complexity vs Simplicity
+* What features do I want in a Config Language
+
+
